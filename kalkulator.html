@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Modern Calculator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@preline/preline@2.0.0/dist/preline.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .btn-press {
+      transform: scale(0.95);
+      transition: transform 0.1s ease;
+    }
+    .display-text {
+      transition: all 0.3s ease;
+    }
+    .btn {
+      @apply bg-gray-100 hover:bg-gray-200 
+             dark:bg-gray-700 dark:hover:bg-gray-600 
+             text-gray-900 dark:text-gray-100 
+             font-bold py-3 px-4 rounded-lg 
+             transition-all duration-200;
+    }
+  </style>
+</head>
+<body class="h-full bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+  <div class="min-h-full flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Modern Calculator</h1>
+        <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+          <i class="fas fa-moon dark:hidden"></i>
+          <i class="fas fa-sun hidden dark:inline"></i>
+        </button>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-4 transition-all duration-300">
+        <div class="p-4 text-right">
+          <div id="history" class="text-gray-500 dark:text-gray-400 text-sm h-6"></div>
+          <div id="display" class="text-3xl font-semibold text-gray-800 dark:text-white display-text">0</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-3">
+        <button onclick="clearAll()" class="col-span-2 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg">AC</button>
+        <button onclick="backspace()" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-3 px-4 rounded-lg">
+          <i class="fas fa-backspace"></i>
+        </button>
+        <button onclick="appendToDisplay('/')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">÷</button>
+
+        <button onclick="appendToDisplay('7')" class="btn">7</button>
+        <button onclick="appendToDisplay('8')" class="btn">8</button>
+        <button onclick="appendToDisplay('9')" class="btn">9</button>
+        <button onclick="appendToDisplay('*')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">×</button>
+
+        <button onclick="appendToDisplay('4')" class="btn">4</button>
+        <button onclick="appendToDisplay('5')" class="btn">5</button>
+        <button onclick="appendToDisplay('6')" class="btn">6</button>
+        <button onclick="appendToDisplay('-')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">-</button>
+
+        <button onclick="appendToDisplay('1')" class="btn">1</button>
+        <button onclick="appendToDisplay('2')" class="btn">2</button>
+        <button onclick="appendToDisplay('3')" class="btn">3</button>
+        <button onclick="appendToDisplay('+')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg">+</button>
+
+        <button onclick="appendToDisplay('0')" class="col-span-2 btn">0</button>
+        <button onclick="appendToDisplay('.')" class="btn">.</button>
+        <button onclick="calculate()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg">=</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      html.classList.add('dark');
+    }
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    let currentInput = '0';
+    const display = document.getElementById('display');
+    const historyDisplay = document.getElementById('history');
+
+    function updateDisplay() {
+      const visualDisplay = currentInput
+        .replace(/\*/g, '×')
+        .replace(/\//g, '÷');
+      display.textContent = visualDisplay;
+    }
+
+    function appendToDisplay(value) {
+      if (currentInput === '0') {
+        currentInput = value;
+      } else {
+        currentInput += value;
+      }
+      updateDisplay();
+    }
+
+    function clearAll() {
+      currentInput = '0';
+      updateDisplay();
+      historyDisplay.textContent = '';
+    }
+
+    function backspace() {
+      currentInput = currentInput.slice(0, -1);
+      if (currentInput === '') currentInput = '0';
+      updateDisplay();
+    }
+
+    function calculate() {
+      try {
+        const result = eval(currentInput);
+        historyDisplay.textContent = currentInput.replace(/\*/g, '×').replace(/\//g, '÷') + ' =';
+        currentInput = result.toString();
+        updateDisplay();
+      } catch (e) {
+        currentInput = 'Error';
+        updateDisplay();
+      }
+    }
+  </script>
+</body>
+</html>
